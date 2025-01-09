@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Domain\Repositories\DebtRepositoryInterface;
+use App\Infrastructure\Repositories\DebtRepository;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -12,6 +14,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         //
+        $this->app->bind(DebtRepositoryInterface::class, DebtRepository::class);
     }
 
     /**
