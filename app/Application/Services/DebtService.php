@@ -2,20 +2,27 @@
 
 namespace App\Application\Services;
 
-use App\Infrastructure\Jobs\ProcessDebtFileJob;
+use App\Application\UseCases\ProcessDebtUseCase;
+use App\Infrastructure\Jobs\ProcessChunkDebtDataJob;
 use App\Infrastructure\Services\ProcessDebtFileService;
 
 class DebtService
 {
     public function __construct(
-        private ProcessDebtFileService $processDebtFileService
+        private ProcessDebtFileService $processDebtFileService,
+        private ProcessDebtUseCase $processDebtUseCase
     ) {}
 
     public function processFile(string $filePath)
     {
         $chunkFile = $this->processDebtFileService->readAndChunkDebtFile($filePath);
         foreach ($chunkFile as $chunk) {
-            ProcessDebtFileJob::dispatch($chunk);
+            foreach ($chunk as $line) {
+                $this->processDebtUseCase->execute($line);
+            }
+            // ProcessChunkDebtDataJob::dispatch($chunk);
+            dump(1);
         }
+        dd(0);
     }
 }

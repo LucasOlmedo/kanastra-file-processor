@@ -12,22 +12,22 @@ class ProcessDebtFileService
     {
         $fileObject = new SplFileObject($filePath, 'r');
         $fileObject->setFlags(SplFileObject::READ_CSV);
-        $fileObject->fgetcsv();
+        $header = $fileObject->fgetcsv();
 
         while (!$fileObject->eof()) {
-            $chunk = $this->chunkCsv($fileObject);
+            $chunk = $this->chunkCsv($fileObject, $header);
             if ($chunk)
                 yield $chunk;
         }
     }
 
-    private function chunkCsv(SplFileObject $fileObject): array
+    private function chunkCsv(SplFileObject $fileObject, array $header): array
     {
         $chunk = [];
         while (count($chunk) < self::CHUNK_SIZE && !$fileObject->eof()) {
             $line = $fileObject->fgetcsv();
             if ($line !== [null])
-                $chunk[] = $line;
+                $chunk[] = array_combine($header, (array)$line);
         }
         return $chunk;
     }
