@@ -9,4 +9,6 @@ class DebtService
     public function __construct(
         private ProcessDebtFileUseCase $processDebtFileUseCase
     ) {}
+
+    public function processFile() {}
 }
