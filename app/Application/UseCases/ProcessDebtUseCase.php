@@ -4,7 +4,7 @@ namespace App\Application\UseCases;
 
 use App\Domain\Repositories\DebtRepositoryInterface;
 
-class ProcessDebtFileUseCase
+class ProcessDebtUseCase
 {
     public function __construct(
         private DebtRepositoryInterface $debtRepository
