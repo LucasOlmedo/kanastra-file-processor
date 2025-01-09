@@ -4,6 +4,7 @@ namespace App\Infrastructure\Jobs;
 
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\Log;
 
 class ProcessDebtFileJob implements ShouldQueue
 {
@@ -17,5 +18,8 @@ class ProcessDebtFileJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(): void {}
+    public function handle(): void
+    {
+        Log::warning('ProcessDebtFileJob');
+    }
 }
