@@ -6,6 +6,7 @@ services:
     container_name: api
     volumes:
       - .:/var/www/html
+      - ./php.ini:/usr/local/etc/php/php.ini
     working_dir: /var/www/html
     ports:
       - "9000:9000"
