@@ -13,7 +13,7 @@ class DebtController extends Controller
 
     public function uploadDebtFile(UploadDebtRequest $request)
     {
-        $filePath = $request->file('debt_file')->store('uploads');
+        $filePath = $request->file('debt_file')->getRealPath();
         $this->debtService->processFile($filePath);
 
         return response()->json([

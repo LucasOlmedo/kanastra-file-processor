@@ -2,6 +2,7 @@
 
 namespace App\Application\Services;
 
+use App\Infrastructure\Jobs\ProcessDebtFileJob;
 use App\Infrastructure\Services\ProcessDebtFileService;
 
 class DebtService
@@ -13,5 +14,8 @@ class DebtService
     public function processFile(string $filePath)
     {
         $chunkFile = $this->processDebtFileService->readAndChunkDebtFile($filePath);
+        foreach ($chunkFile as $chunk) {
+            ProcessDebtFileJob::dispatch($chunk);
+        }
     }
 }
