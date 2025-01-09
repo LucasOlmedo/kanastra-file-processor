@@ -2,17 +2,40 @@
 
 namespace App\Infrastructure\Mappers;
 
+use App\Models\Debt as DebtModel;
+use App\Domain\Entities\Debt as DebtEntity;
 use App\Domain\Mappers\EntityMapperInterface;
 
 class DebtMapper implements EntityMapperInterface
 {
     public function toEntity(object $model): object
     {
-        return $model;
+        if (!$model instanceof DebtModel)
+            throw new \Exception('Model must be an instance of Debt');
+
+        return new DebtEntity(
+            name: $model->name,
+            governmentId: $model->government_id,
+            email: $model->email,
+            debtAmount: $model->amount,
+            debtDueDate: $model->due_date,
+            debtId: $model->uuid
+        );
     }
 
     public function toModel(object $entity): object
     {
-        return $entity;
+        if (!$entity instanceof DebtEntity)
+            throw new \Exception('Entity must be an instance of Debt');
+
+        $model = DebtModel::firstOrNew(['uuid' => $entity->debtId]);
+        $model->uuid = $entity->debtId;
+        $model->name = $entity->name;
+        $model->government_id = $entity->governmentId;
+        $model->email = $entity->email;
+        $model->amount = $entity->debtAmount;
+        $model->due_date = $entity->debtDueDate;
+
+        return $model;
     }
 }

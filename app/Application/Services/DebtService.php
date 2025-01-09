@@ -21,8 +21,6 @@ class DebtService
                 $this->processDebtUseCase->execute($line);
             }
             // ProcessChunkDebtDataJob::dispatch($chunk);
-            dump(1);
         }
-        dd(0);
     }
 }
