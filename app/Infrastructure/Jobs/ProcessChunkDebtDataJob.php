@@ -4,6 +4,7 @@ namespace App\Infrastructure\Jobs;
 
 use App\Application\UseCases\GenerateInvoiceUseCase;
 use App\Application\UseCases\ProcessDebtUseCase;
+use App\Application\UseCases\SendInvoiceEmailUseCase;
 use App\Application\UseCases\VerifyDuplicateDebtUseCase;
 use App\Infrastructure\Exceptions\ProcessDebtJobFailException;
 use Exception;
@@ -30,7 +31,8 @@ class ProcessChunkDebtDataJob implements ShouldQueue
     public function handle(
         ProcessDebtUseCase $processDebtUseCase,
         VerifyDuplicateDebtUseCase $verifyDuplicateDebtUseCase,
-        GenerateInvoiceUseCase $generateInvoiceUseCase
+        GenerateInvoiceUseCase $generateInvoiceUseCase,
+        SendInvoiceEmailUseCase $sendInvoiceEmailUseCase
     ): void {
         try {
             foreach ($this->chunkData as $lineData) {
@@ -38,6 +40,7 @@ class ProcessChunkDebtDataJob implements ShouldQueue
                     continue;
                 $debtProcessed = $processDebtUseCase->execute($lineData);
                 $invoiceGenerated = $generateInvoiceUseCase->execute($debtProcessed);
+                $sendInvoiceEmailUseCase->execute($invoiceGenerated);
             }
         } catch (Exception $e) {
             throw new ProcessDebtJobFailException(
