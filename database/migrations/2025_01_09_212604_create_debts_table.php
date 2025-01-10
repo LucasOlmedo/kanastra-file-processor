@@ -21,6 +21,8 @@ return new class extends Migration
             $table->date('due_date');
             $table->timestamps();
             $table->softDeletes();
+
+            $table->index('uuid');
         });
     }
 

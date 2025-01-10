@@ -3,9 +3,9 @@
 namespace App\Infrastructure\Jobs;
 
 use App\Application\UseCases\ProcessDebtUseCase;
+use App\Application\UseCases\VerifyDuplicateDebtUseCase;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
-use Illuminate\Support\Facades\Log;
 
 class ProcessChunkDebtDataJob implements ShouldQueue
 {
@@ -24,9 +24,13 @@ class ProcessChunkDebtDataJob implements ShouldQueue
     /**
      * Execute the job.
      */
-    public function handle(ProcessDebtUseCase $processDebtUseCase): void
-    {
+    public function handle(
+        ProcessDebtUseCase $processDebtUseCase,
+        VerifyDuplicateDebtUseCase $verifyDuplicateDebtUseCase
+    ): void {
         foreach ($this->chunkData as $lineData) {
+            if ($verifyDuplicateDebtUseCase->execute($lineData))
+                continue;
             $processDebtUseCase->execute($lineData);
         }
     }

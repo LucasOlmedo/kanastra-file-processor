@@ -6,7 +6,12 @@ use SplFileObject;
 
 class ProcessDebtFileService
 {
-    const CHUNK_SIZE = 5000;
+    private int $chunkSize;
+
+    public function __construct()
+    {
+        $this->chunkSize = env('CHUNK_SIZE', 2000);
+    }
 
     public function readAndChunkDebtFile(string $filePath)
     {
@@ -24,7 +29,7 @@ class ProcessDebtFileService
     private function chunkCsv(SplFileObject $fileObject, array $header): array
     {
         $chunk = [];
-        while (count($chunk) < self::CHUNK_SIZE && !$fileObject->eof()) {
+        while (count($chunk) < $this->chunkSize && !$fileObject->eof()) {
             $line = $fileObject->fgetcsv();
             if ($line !== [null])
                 $chunk[] = array_combine($header, (array)$line);
