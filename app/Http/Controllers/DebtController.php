@@ -11,5 +11,22 @@ class DebtController extends Controller
         private DebtService $debtService
     ) {}
 
-    public function uploadDebtFile(UploadDebtRequest $request) {}
+    public function uploadDebtFile(UploadDebtRequest $request)
+    {
+        try {
+            $filePath = $request->file('debt_file')->getRealPath();
+            $this->debtService->processFile($filePath);
+
+            return response()
+                ->json([
+                    'message' => 'File uploaded successfully. Processing...'
+                ]);
+        } catch (\Throwable $th) {
+
+            return response()
+                ->json([
+                    'error' => $th->getMessage()
+                ], $th->getCode());
+        }
+    }
 }
