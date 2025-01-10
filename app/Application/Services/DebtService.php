@@ -4,6 +4,7 @@ namespace App\Application\Services;
 
 use App\Application\UseCases\GenerateInvoiceUseCase;
 use App\Application\UseCases\ProcessDebtUseCase;
+use App\Application\UseCases\SendInvoiceEmailUseCase;
 use App\Application\UseCases\VerifyDuplicateDebtUseCase;
 use App\Infrastructure\Jobs\ProcessChunkDebtDataJob;
 use App\Infrastructure\Services\ProcessDebtFileService;
@@ -14,7 +15,8 @@ class DebtService
         private ProcessDebtFileService $processDebtFileService,
         private ProcessDebtUseCase $processDebtUseCase,
         private VerifyDuplicateDebtUseCase $verifyDuplicateDebtUseCase,
-        private GenerateInvoiceUseCase $generateInvoiceUseCase
+        private GenerateInvoiceUseCase $generateInvoiceUseCase,
+        private SendInvoiceEmailUseCase $sendInvoiceEmailUseCase
     ) {}
 
     public function processFile(string $filePath)
@@ -35,6 +37,7 @@ class DebtService
 
                 $debt = $this->processDebtUseCase->execute($line);
                 $invoice = $this->generateInvoiceUseCase->execute($debt);
+                $this->sendInvoiceEmailUseCase->execute($invoice);
             }
         }
     }
