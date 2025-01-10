@@ -5,8 +5,9 @@ namespace App\Infrastructure\Repositories;
 use App\Domain\Entities\Debt;
 use App\Models\Debt as DebtModel;
 use App\Domain\Repositories\DebtRepositoryInterface;
+use App\Infrastructure\Exceptions\SaveDebtErrorException;
 use App\Infrastructure\Mappers\DebtMapper;
-use Illuminate\Support\Facades\Log;
+use Exception;
 
 class DebtRepository implements DebtRepositoryInterface
 {
@@ -20,11 +21,11 @@ class DebtRepository implements DebtRepositoryInterface
             $model = $this->debtMapper->toModel($entity);
             $model->save();
             return $this->debtMapper->toEntity($model);
-        } catch (\Exception $e) {
-            Log::error("Error saving debt: " . $e->getMessage(), [
-                'entity' => $entity,
-            ]);
-            throw $e;
+        } catch (Exception $e) {
+            throw new SaveDebtErrorException(
+                detailedError: $e->getMessage(),
+                debt: $entity
+            );
         }
     }
 

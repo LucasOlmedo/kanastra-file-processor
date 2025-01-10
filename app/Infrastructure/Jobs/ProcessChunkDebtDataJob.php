@@ -4,6 +4,7 @@ namespace App\Infrastructure\Jobs;
 
 use App\Application\UseCases\ProcessDebtUseCase;
 use App\Application\UseCases\VerifyDuplicateDebtUseCase;
+use App\Infrastructure\Exceptions\ProcessDebtJobFailException;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
@@ -37,9 +38,11 @@ class ProcessChunkDebtDataJob implements ShouldQueue
                 $processDebtUseCase->execute($lineData);
             }
         } catch (Exception $e) {
-            Log::error("Error processing chunk: " . $e->getMessage(), [
-                'chunk' => $this->chunkData,
-            ]);
+            throw new ProcessDebtJobFailException(
+                jobMessage: $e->getMessage(),
+                chunkData: $this->chunkData
+            );
+
             $this->fail($e);
         }
     }
