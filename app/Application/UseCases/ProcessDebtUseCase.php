@@ -2,12 +2,14 @@
 
 namespace App\Application\UseCases;
 
+use App\Domain\Exceptions\InvalidDebtDataException;
+
 class ProcessDebtUseCase extends DebtUseCase
 {
     public function execute(array $data)
     {
         if (!$this->validateData($data))
-            throw new \InvalidArgumentException("Invalid data: " . json_encode($data));
+            throw new InvalidDebtDataException($data);
 
         $debt = $this->createDebtEntity($data);
         return $this->debtRepository->save($debt);
