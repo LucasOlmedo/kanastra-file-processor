@@ -10,14 +10,19 @@ use App\Infrastructure\Exceptions\ProcessDebtJobFailException;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ProcessChunkDebtDataJob implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, InteractsWithQueue;
 
     private array $chunkData;
+
+    public int $tries = 3;
+
+    public int $retryAfter = 90;
 
     /**
      * Create a new job instance.
@@ -56,5 +61,15 @@ class ProcessChunkDebtDataJob implements ShouldQueue
             DB::rollBack();
             $this->fail($e);
         }
+    }
+
+    public function failed(Exception $exception): void
+    {
+        Log::critical('Job failed', [
+            'exception' => $exception->getMessage(),
+            'chunk_data' => $this->chunkData,
+        ]);
+
+        // Notifications (Slack, Email, etc.)
     }
 }
