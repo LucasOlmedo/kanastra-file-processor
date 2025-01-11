@@ -1,66 +1,174 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Projeto Kanasta - Documentação
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+O projeto foi desenvolvido para processar arquivos grandes contendo uma lista de dívidas, gerar os respectivos boletos, e enviar e-mails de forma eficiente, utilizando filas de processamento com foco em eficiência, escalabilidade e boas práticas de programação.
 
-## About Laravel
+---
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## Arquitetura do Sistema
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+Este projeto foi desenvolvido utilizando, como base arquitetural, a `Clean Architecture` com algumas práticas de `Domain-Driven Design`, de forma adaptada para o framework Laravel.
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+A seguir, uma breve explicação sobre as camadas dessa arquitetura adaptada:
 
-## Learning Laravel
+* **Domain:**
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+    - Contém as entidades centrais com as regras de negócio puras (`Entities`).
+    - Classes e interfaces abstraídas.
+    - Não há dependências de framework, banco de dados, nem packages externos.
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+* **Application:**
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+    - Contém os casos de uso que são os executores das funções da aplicação, exemplo: `ProcessDebtUseCase`.
+    - Faz a orquestração entre os componentes da aplicação através dos Services.
 
-## Laravel Sponsors
+* **Infrastructure:**
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+    - Utiliza dependências do framework, banco de dados e packages externos.
+    - Implementa os repositórios concretos com as interfaces de domínio, exemplo: `DebtRepository - DebtRepositoryInterface`.
+    - Contém serviços específicos de infraestrutura, como o envio de email, jobs em fila e Database Transactions.
 
-### Premium Partners
+* **Componentes originais do Laravel:**
+    - `App/Http/Controllers` - Contém os controllers originais do Laravel, somente como uma porta de entrada da aplicação, direcionando para o serviço correto.
+    - `App/Http/Controllers/Requests` - Utiliza os Requests gerados pelo Laravel para a validação dos dados especificamente da requisição.
+    - `App/Models` - Models Eloquent mantidas como adaptadores do banco de dados, sendo mapeados para as entidades de domínio.
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+---
 
-## Contributing
+## Configuração do Ambiente
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+### Requisitos
 
-## Code of Conduct
+-   Docker e Docker Compose instalados
+-   Composer instalado
+-   Git instalado
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+### Passos para configuração
 
-## Security Vulnerabilities
+Clone o repositório:
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+git clone https://github.com/LucasOlmedo/kanastra-file-processor.git
+cd kanastra-file-processor/
+```
 
-## License
+Configure as variáveis de ambiente:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+Crie um arquivo `.env` baseado no exemplo:
+
+```bash
+cp .env.example .env
+```
+
+Atualize as informações no arquivo `.env` conforme sua configuração local, especialmente as seções de banco de dados e URLs da aplicação.
+
+Sugestão abaixo:
+
+```
+DB_CONNECTION=mysql
+DB_HOST=db
+DB_PORT=3306
+DB_DATABASE=api
+DB_USERNAME=root
+DB_ROOT_PASSWORD=root
+```
+
+Construa os contêineres Docker:
+
+```bash
+docker-compose up -d
+```
+
+Entre no contêiner da aplicação:
+
+```bash
+docker-compose exec api bash
+```
+
+Dentro do `contêiner`, altere as permissões para escrita nos arquivos:
+
+```
+chown 1000:1000 -Rf storage/ bootstrap/cache
+chmod 777 -Rf storage/ bootstrap/cache
+```
+
+Dentro do `contêiner`, instale as dependências:
+
+```bash
+composer install
+```
+
+Dentro do `contêiner`, gere a chave da aplicação:
+
+```bash
+php artisan key:generate
+```
+
+Dentro do `contêiner`, execute as migrações para configurar o banco de dados:
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Para a execução das filas, dentro do `contêiner`, rode o comando:
+
+```bash
+php artisan queue:work
+```
+
+**Atenção!**
+
+> [!WARNING]
+> A variável de ambiente `CHUNK_SIZE` foi configurada para limitar, ou aumentar, o tamanho do bloco (`chunk`) a ser processado pelo job. O valor padrão é um chunk de 2000.
+
+Nesta aplicação o processamento em filas foi mantido em `database` por se tratar de uma execução simples, porém para casos reais, mais complexos e com alto volume de filas, optar pelo `Redis` é mais performático.
+
+---
+
+## Endpoint
+
+-   **POST - /api/upload-debts** - Importação do arquivo `.csv`:
+    -   (form-data) _debt_file_ `required` - Campo necessário para upload do arquivo.
+
+---
+
+## Fluxo da Aplicação
+
+### 1. Importação de Dados
+
+1. O usuário envia um arquivo CSV contendo as dívidas.
+2. O arquivo é processado em `chunks` para evitar sobrecarga na memória.
+3. Imediatamente após o upload do arquivo, o usuário recebe a informação de que os registros serão processados.
+4. Cada `chunk` cria um job na fila para processamento (`App\Infrastructure\Jobs\ProcessChunkDebtDataJob`).
+
+### 2. Processamento
+
+1. Para configurar o tamanho dos `chunks` (padrão 2000), altere a variável de ambiente `CHUNK_SIZE`.
+    - Um valor `menor` garante uma requisição um pouco mais rápida e maior rastreabilidade no caso de erro, mas pode sobrecarregar a fila pelo número de jobs excessivos lançados.
+    - Um valor `maior` deixa a requisição um pouco mais lenta e pode sobrecarregar o `bulk insert` (dependendo do banco de dados que estiver usando), mas lança menos jobs e é mais performático com a fila.
+    - No meu ambiente, utilizei `CHUNK_SIZE=5000` e performou razoavelmente bem. A requisição para um arquivo .csv com 1.100.00 linhas foi, em média, de 30 segundos enquanto o processamento da fila (Bulk Inserts) foi entre 10 e 12 minutos no total.
+2. Cada job verifica duplicidade de registros no banco, removendo do `chunk` os duplicados.
+3. O bloco de registros é salvo no banco (`Debt`) com um _bulk insert_.
+4. Baseado nesse bloco de registros, os boletos (`Invoice`) são gerados e também inseridos no banco com um _bulk insert_.
+
+### 3. Envio de Boletos
+
+1. Cada boleto (`Invoice`) gerado é enviado ao e-mail correspondente (simulação com logs).
+2. Falhas nos jobs são logadas e reprocessadas automaticamente.
+
+---
+
+## Testes
+
+Execute os testes unitários e de integração para garantir que o sistema está funcionando corretamente:
+
+Entre no contêiner da aplicação:
+
+```bash
+docker-compose exec api bash
+```
+
+Dentro do `contêiner`, execute os testes:
+
+```bash
+php artisan test
+```
