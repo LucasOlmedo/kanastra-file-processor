@@ -11,6 +11,7 @@ use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProcessChunkDebtDataJob implements ShouldQueue
 {
@@ -44,6 +45,8 @@ class ProcessChunkDebtDataJob implements ShouldQueue
             $sendInvoiceEmailUseCase->execute($invoices);
 
             DB::commit();
+
+            Log::info('Job processed successfully');
         } catch (Exception $e) {
             throw new ProcessDebtJobFailException(
                 jobMessage: $e->getMessage(),
