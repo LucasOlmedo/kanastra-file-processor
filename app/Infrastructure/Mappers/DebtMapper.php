@@ -38,4 +38,16 @@ class DebtMapper implements EntityMapperInterface
 
         return $model;
     }
+
+    public function toArray(DebtEntity $entity): array
+    {
+        return [
+            'uuid' => $entity->debtId,
+            'name' => $entity->name,
+            'government_id' => $entity->governmentId,
+            'email' => $entity->email,
+            'amount' => $entity->debtAmount,
+            'due_date' => $entity->debtDueDate,
+        ];
+    }
 }

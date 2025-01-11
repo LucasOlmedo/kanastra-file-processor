@@ -12,13 +12,18 @@ class GenerateInvoiceUseCase
         protected InvoiceRepositoryInterface $invoiceRepository
     ) {}
 
-    public function execute(Debt $debt): Invoice
+    public function execute(array $debts): array
     {
-        $invoice = new Invoice(
+        $invoices = array_map(fn(Debt $debt) => $this->createInvoiceEntity($debt), $debts);
+        return $this->invoiceRepository->bulkInsert($invoices);
+    }
+
+    private function createInvoiceEntity(Debt $debt)
+    {
+        return new Invoice(
             debtId: $debt->debtId,
             dueDate: $debt->debtDueDate,
             barcode: null
         );
-        return $this->invoiceRepository->save($invoice);
     }
 }

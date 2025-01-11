@@ -5,7 +5,7 @@ namespace App\Infrastructure\Repositories;
 use App\Domain\Entities\Debt;
 use App\Models\Debt as DebtModel;
 use App\Domain\Repositories\DebtRepositoryInterface;
-use App\Infrastructure\Exceptions\SaveDebtErrorException;
+use App\Infrastructure\Exceptions\BulkSaveDebtErrorException;
 use App\Infrastructure\Mappers\DebtMapper;
 use Exception;
 
@@ -15,16 +15,16 @@ class DebtRepository implements DebtRepositoryInterface
         private DebtMapper $debtMapper
     ) {}
 
-    public function save(Debt $entity): Debt
+    public function bulkInsert(array $debtData): array
     {
         try {
-            $model = $this->debtMapper->toModel($entity);
-            $model->save();
-            return $this->debtMapper->toEntity($model);
+            $debtArray = array_map(fn($data) => $this->debtMapper->toArray($data), $debtData);
+            DebtModel::insert($debtArray);
+            return $debtData;
         } catch (Exception $e) {
-            throw new SaveDebtErrorException(
+            throw new BulkSaveDebtErrorException(
                 detailedError: $e->getMessage(),
-                debt: $entity
+                debts: $debtData
             );
         }
     }

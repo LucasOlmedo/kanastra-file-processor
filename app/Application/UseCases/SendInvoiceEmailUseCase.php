@@ -12,8 +12,10 @@ class SendInvoiceEmailUseCase
         private SendInvoiceEmailService $sendInvoiceEmailService
     ) {}
 
-    public function execute(Invoice $invoice)
+    public function execute(array $invoices): void
     {
-        $this->sendInvoiceEmailService->sendInvoiceEmail($invoice);
+        foreach ($invoices as $invoice) {
+            $this->sendInvoiceEmailService->sendInvoiceEmail($invoice);
+        }
     }
 }

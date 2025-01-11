@@ -6,6 +6,6 @@ use App\Domain\Entities\Debt;
 
 interface DebtRepositoryInterface
 {
-    public function save(Debt $entity): Debt;
+    public function bulkInsert(array $debtEntities);
     public function exists(string $debtId): bool;
 }

@@ -10,6 +10,7 @@ use App\Infrastructure\Exceptions\ProcessDebtJobFailException;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Support\Facades\DB;
 
 class ProcessChunkDebtDataJob implements ShouldQueue
 {
@@ -35,19 +36,21 @@ class ProcessChunkDebtDataJob implements ShouldQueue
         SendInvoiceEmailUseCase $sendInvoiceEmailUseCase
     ): void {
         try {
-            foreach ($this->chunkData as $lineData) {
-                if ($verifyDuplicateDebtUseCase->execute($lineData))
-                    continue;
-                $debtProcessed = $processDebtUseCase->execute($lineData);
-                $invoiceGenerated = $generateInvoiceUseCase->execute($debtProcessed);
-                $sendInvoiceEmailUseCase->execute($invoiceGenerated);
-            }
+            DB::beginTransaction();
+
+            $uniqueChunk = $verifyDuplicateDebtUseCase->execute($this->chunkData);
+            $debts = $processDebtUseCase->execute($uniqueChunk);
+            $invoices = $generateInvoiceUseCase->execute($debts);
+            $sendInvoiceEmailUseCase->execute($invoices);
+
+            DB::commit();
         } catch (Exception $e) {
             throw new ProcessDebtJobFailException(
                 jobMessage: $e->getMessage(),
                 chunkData: $this->chunkData
             );
 
+            DB::rollBack();
             $this->fail($e);
         }
     }

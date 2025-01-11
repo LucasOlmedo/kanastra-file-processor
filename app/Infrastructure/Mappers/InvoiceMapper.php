@@ -31,4 +31,13 @@ class InvoiceMapper implements EntityMapperInterface
 
         return $model;
     }
+
+    public function toArray(InvoiceEntity $entity): array
+    {
+        return [
+            'debt_id' => $entity->debtId,
+            'due_date' => $entity->dueDate,
+            'barcode' => $entity->barcode
+        ];
+    }
 }
