@@ -4,9 +4,13 @@ namespace App\Application\UseCases;
 
 class VerifyDuplicateDebtUseCase extends DebtUseCase
 {
-    public function execute(array $data): bool
+    public function execute(array $data): array
     {
-        $debt = $this->createDebtEntity($data);
-        return $this->debtRepository->exists($debt->debtId);
+        $mappedDebtEntities = array_map(function (array $debt) {
+            $debtEntity = $this->createDebtEntity($debt);
+            return !$this->debtRepository->exists($debtEntity->debtId) ? $debtEntity : null;
+        }, $data);
+
+        return array_filter($mappedDebtEntities);
     }
 }

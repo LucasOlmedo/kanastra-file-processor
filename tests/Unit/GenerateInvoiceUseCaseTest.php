@@ -26,34 +26,46 @@ class GenerateInvoiceUseCaseTest extends TestCase
         $invoiceEntityMock = $this->createInvoiceEntityMock($debtEntityMock);
 
         $this->mockInvoiceRepository->expects($this->once())
-            ->method('save')
+            ->method('bulkInsert')
             ->willReturn($invoiceEntityMock);
 
         $useCase = new GenerateInvoiceUseCase($this->mockInvoiceRepository);
         $useCase->execute($debtEntityMock);
 
-        $this->assertInstanceOf(Invoice::class, $invoiceEntityMock);
-        $this->assertEquals($debtEntityMock->debtId, $invoiceEntityMock->debtId);
-        $this->assertEquals($debtEntityMock->debtDueDate, $invoiceEntityMock->dueDate);
-        $this->assertNotNull($invoiceEntityMock->barcode);
+        $this->assertInstanceOf(Invoice::class, $invoiceEntityMock[0]);
+        $this->assertEquals($debtEntityMock[0]->debtId, $invoiceEntityMock[0]->debtId);
+        $this->assertEquals($debtEntityMock[0]->debtDueDate, $invoiceEntityMock[0]->dueDate);
+        $this->assertNotNull($invoiceEntityMock[0]->barcode);
     }
 
-    private function createInvoiceEntityMock(Debt $debt)
+    private function createInvoiceEntityMock(array $debts)
     {
-        $invoice = new Invoice(
-            debtId: $debt->debtId,
-            dueDate: $debt->debtDueDate,
-            barcode: null
-        );
-        $invoice->generateBarcode();
-        return $invoice;
+        $invoices = [];
+
+        foreach ($debts as $debt) {
+            $invoice = new Invoice(
+                debtId: $debt->debtId,
+                dueDate: $debt->debtDueDate,
+                barcode: null
+            );
+            $invoice->generateBarcode();
+            $invoices[] = $invoice;
+        }
+
+        return $invoices;
     }
 
     private function createPartialDebtEntityMock()
     {
-        $debt = $this->createMock(Debt::class);
-        $debt->debtId = (string) Str::uuid();
-        $debt->debtDueDate = '2022-01-01';
-        return $debt;
+        $debts = [];
+
+        for ($i = 0; $i < 5; $i++) {
+            $debt = $this->createMock(Debt::class);
+            $debt->debtId = (string) Str::uuid();
+            $debt->debtDueDate = fake()->date('Y-m-d');
+            $debts[] = $debt;
+        }
+
+        return $debts;
     }
 }

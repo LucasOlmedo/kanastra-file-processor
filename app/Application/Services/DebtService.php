@@ -31,14 +31,10 @@ class DebtService
     {
         $chunkFile = $this->processDebtFileService->readAndChunkDebtFile($filePath);
         foreach ($chunkFile as $chunk) {
-            foreach ($chunk as $line) {
-                if ($this->verifyDuplicateDebtUseCase->execute($line))
-                    continue;
-
-                $debt = $this->processDebtUseCase->execute($line);
-                $invoice = $this->generateInvoiceUseCase->execute($debt);
-                $this->sendInvoiceEmailUseCase->execute($invoice);
-            }
+            $uniqueChunk = $this->verifyDuplicateDebtUseCase->execute($chunk);
+            $debts = $this->processDebtUseCase->execute($uniqueChunk);
+            $invoices = $this->generateInvoiceUseCase->execute($debts);
+            $this->sendInvoiceEmailUseCase->execute($invoices);
         }
     }
 }

@@ -10,12 +10,19 @@ use App\Infrastructure\Exceptions\ProcessDebtJobFailException;
 use Exception;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
+use Illuminate\Queue\InteractsWithQueue;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class ProcessChunkDebtDataJob implements ShouldQueue
 {
-    use Queueable;
+    use Queueable, InteractsWithQueue;
 
     private array $chunkData;
+
+    public int $tries = 3;
+
+    public int $retryAfter = 90;
 
     /**
      * Create a new job instance.
@@ -35,20 +42,34 @@ class ProcessChunkDebtDataJob implements ShouldQueue
         SendInvoiceEmailUseCase $sendInvoiceEmailUseCase
     ): void {
         try {
-            foreach ($this->chunkData as $lineData) {
-                if ($verifyDuplicateDebtUseCase->execute($lineData))
-                    continue;
-                $debtProcessed = $processDebtUseCase->execute($lineData);
-                $invoiceGenerated = $generateInvoiceUseCase->execute($debtProcessed);
-                $sendInvoiceEmailUseCase->execute($invoiceGenerated);
-            }
+            DB::beginTransaction();
+
+            $uniqueChunk = $verifyDuplicateDebtUseCase->execute($this->chunkData);
+            $debts = $processDebtUseCase->execute($uniqueChunk);
+            $invoices = $generateInvoiceUseCase->execute($debts);
+            $sendInvoiceEmailUseCase->execute($invoices);
+
+            DB::commit();
+
+            Log::info('Job processed successfully');
         } catch (Exception $e) {
             throw new ProcessDebtJobFailException(
                 jobMessage: $e->getMessage(),
                 chunkData: $this->chunkData
             );
 
+            DB::rollBack();
             $this->fail($e);
         }
+    }
+
+    public function failed(Exception $exception): void
+    {
+        Log::critical('Job failed', [
+            'exception' => $exception->getMessage(),
+            'chunk_data' => $this->chunkData,
+        ]);
+
+        // Notifications (Slack, Email, etc.)
     }
 }

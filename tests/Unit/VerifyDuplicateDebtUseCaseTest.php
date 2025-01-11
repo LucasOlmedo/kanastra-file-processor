@@ -3,9 +3,10 @@
 namespace Tests\Unit;
 
 use App\Application\UseCases\VerifyDuplicateDebtUseCase;
+use App\Domain\Entities\Debt;
+use App\Domain\Exceptions\InvalidDebtDataException;
 use Illuminate\Support\Str;
 use App\Domain\Repositories\DebtRepositoryInterface;
-use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 class VerifyDuplicateDebtUseCaseTest extends TestCase
@@ -19,45 +20,63 @@ class VerifyDuplicateDebtUseCaseTest extends TestCase
         $this->mockDebtRepository = $this->createMock(DebtRepositoryInterface::class);
     }
 
-    #[DataProvider('debtDataProvider')]
-    public function test_verify_duplicate_debt_with_data_provider($data, $expected): void
+    public function test_verify_duplicate_debt(): void
     {
-        $this->mockDebtRepository->expects($this->once())
-            ->method('exists')
-            ->with($data['debtId'])
-            ->willReturn($expected);
+        $data = [
+            [
+                'name' => 'John Doe',
+                'governmentId' => '123',
+                'email' => 'RmL2X@example.com',
+                'debtId' => (string) Str::uuid(),
+                'debtAmount' => 100,
+                'debtDueDate' => '2022-01-01',
+            ],
+            [
+                'name' => 'Jane Doe',
+                'governmentId' => '456',
+                'email' => 'jane@example.com',
+                'debtId' => (string) Str::uuid(),
+                'debtAmount' => 200,
+                'debtDueDate' => '2022-02-01',
+            ]
+        ];
+
+        $entities = array_map(fn($d) => $this->mockPartialDebtEntities($d), $data);
+
+        $this->mockDebtRepository
+            ->expects($this->any())
+            ->method('exists');
 
         $useCase = new VerifyDuplicateDebtUseCase($this->mockDebtRepository);
         $result = $useCase->execute($data);
 
-        $this->assertEquals($expected, $result);
+        $this->assertEquals($entities[0]->debtId, $result[0]->debtId);
     }
 
-    public static function debtDataProvider(): array
+    public function test_verify_duplicate_debt_invalid_data_exception(): void
     {
-        return [
-            'debt_exists' => [
-                'data' => [
-                    'name' => 'John Doe',
-                    'governmentId' => '123',
-                    'email' => 'RmL2X@example.com',
-                    'debtId' => (string) Str::uuid(),
-                    'debtAmount' => 100,
-                    'debtDueDate' => '2022-01-01',
-                ],
-                'expected' => true
-            ],
-            'debt_does_not_exist' => [
-                'data' => [
-                    'name' => 'Jane Doe',
-                    'governmentId' => '456',
-                    'email' => 'jane@example.com',
-                    'debtId' => 'abcd-1234-5678-abcd',
-                    'debtAmount' => 200,
-                    'debtDueDate' => '2022-02-01',
-                ],
-                'expected' => false
-            ],
+        $data = [
+            [
+                'name' => 'John Doe',
+                'governmentId' => '123',
+                'email' => 'RmL2X.invalid.com',
+            ]
         ];
+
+        $this->expectException(InvalidDebtDataException::class);
+
+        $this->mockDebtRepository
+            ->expects($this->any())
+            ->method('exists');
+
+        $useCase = new VerifyDuplicateDebtUseCase($this->mockDebtRepository);
+        $useCase->execute($data);
+    }
+
+    private function mockPartialDebtEntities(array $data)
+    {
+        $debt =  $this->createMock(Debt::class);
+        $debt->debtId = $data['debtId'];
+        return $debt;
     }
 }
