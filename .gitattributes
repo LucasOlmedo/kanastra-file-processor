@@ -12,4 +12,4 @@ CHANGELOG.md export-ignore
 
 *.css linguist-detectable=false
 *.html linguist-detectable=false
-*.blade.* linguist-detectable=false
+*.blade.php linguist-detectable=false
